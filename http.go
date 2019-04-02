@@ -2,6 +2,11 @@ package utilities
 
 import "net/http"
 
+/*
+ * 对于RequestHandler.handlers的修改非线程安全，因此避免通过NewRequestHandler构造
+ * 时使用的routers对RequestHandler.handlers进行外部的修改!!!
+ */
+
 type RequestHandler struct {
 	handlers *map[string]func(http.ResponseWriter, *http.Request);
 }
