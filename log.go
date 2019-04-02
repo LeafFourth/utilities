@@ -1,7 +1,6 @@
 package utilities
 
 import "fmt"
-import "log"
 import "os"
 import "unsafe"
 import "sync"
@@ -12,14 +11,9 @@ type spinLock32 struct {
 	off uint
 }
 
-type logWriter struct {
-	host *Logger;
-}
-
-type Logger struct {
+type LogWriter struct {
 	mutex *sync.Mutex
 	file *os.File
-	innerLogger *log.Logger
 }
 
 func alignMem(addr uintptr,base uint) uintptr {
@@ -60,11 +54,11 @@ func (self spinLock32) unlock() {
 }
 
 
-func (self logWriter)Write(p []byte) (n int, err error) {
-	self.host.mutex.Lock();
-	defer self.host.mutex.Unlock();
+func (self *LogWriter)Write(p []byte) (n int, err error) {
+	self.mutex.Lock();
+	defer self.mutex.Unlock();
 
-	fp := self.host.file;
+	fp := self.file;
 
 	if fp == nil {
 		fmt.Println(p);
@@ -78,8 +72,8 @@ func (self logWriter)Write(p []byte) (n int, err error) {
 	return len(p), nil;
 }
 
-func NewLogger() *Logger {
-	ret := new(Logger);
+func NewLogWriter() *LogWriter {
+	ret := new(LogWriter);
 	if ret == nil {
 		return nil;
 	}
@@ -89,15 +83,10 @@ func NewLogger() *Logger {
 		return nil;
 	}
 
-	writer := logWriter{host: ret};
-	ret.innerLogger = log.New(writer, "", log.Llongfile | log.Lmicroseconds)
-	if ret.innerLogger == nil {
-		return nil;
-	}
 	return ret;
 }
 
-func (self *Logger)SetLogPath(path string) {
+func (self *LogWriter)SetLogPath(path string) {
 	self.mutex.Lock()
 	if self.file != nil {
 		self.file.Close()
@@ -113,10 +102,6 @@ func (self *Logger)SetLogPath(path string) {
 
 	}
 	self.mutex.Unlock();
-}
-
-func (self *Logger)Log(v ...interface{}) {
-	self.innerLogger.Print(v);
 }
 
 
