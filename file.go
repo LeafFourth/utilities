@@ -1,7 +1,5 @@
 package utilities
 
-import "fmt"
-
 import "archive/zip"
 import "errors"
 import "io"
@@ -75,9 +73,7 @@ func UnzipFile(zipFile string, dst string) error {
 
 	for _, f := range zipReader.File {
 		subPath := dst + f.Name;
-		fmt.Println(dst, " ", f.Name, " ", subPath);
 		if subPath[len(subPath) - 1] == '/' {
-			fmt.Println("create dir:" + subPath);
 			err4 :=  os.MkdirAll(subPath, 0644);
 			if err4 != nil {
 				return errors.New("unzip error:" + zipFile);
