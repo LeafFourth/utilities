@@ -4,11 +4,12 @@ import "archive/zip"
 import "errors"
 import "io"
 import "os"
+import "path/filepath"
 
 func WriteFile(reader io.Reader, path string) error {
 	mode := os.O_CREATE | os.O_WRONLY | os.O_TRUNC;
 
-	dst, err := os.OpenFile(path, mode, 0755);
+	dst, err := os.OpenFile(path, mode, 0644);
 	if (err != nil) {
 		return errors.New("create file error:" + path);
 	}
@@ -72,24 +73,28 @@ func UnzipFile(zipFile string, dst string) error {
 	defer zipReader.Close();
 
 	for _, f := range zipReader.File {
-		subPath := dst + f.Name;
+		subPath := filepath.Join(dst, f.Name);		
 		if subPath[len(subPath) - 1] == '/' {
 			err4 :=  os.MkdirAll(subPath, 0644);
 			if err4 != nil {
-				return errors.New("unzip error:" + zipFile);
+				return errors.New("unzip create dir error:" + subPath);
 			}
 			continue;
 		}
 
+		parent := filepath.Dir(subPath);
+		if err := os.MkdirAll(parent, 0644); err != nil {
+			return err;
+		}
 
 		reader, err5 := f.Open();
 		if err5 != nil {
-			return errors.New("unzip error:" + zipFile);
+			return errors.New("unzip open file error:" + subPath);
 		}
 		err6 := WriteFile(reader, subPath);
 		reader.Close();
 		if err6 != nil {
-			return errors.New("unzip error:" + zipFile);
+			return err6;
 		}
 	}
 	return nil;
