@@ -93,7 +93,7 @@ func (self *LogWriter)SetLogPath(path string) {
 		self.file = nil
 	}
 	if len(path) > 0 {
-		fp, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_RDONLY , 0644)
+		fp, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY , 0644)
 		if err != nil {
 			fmt.Println(err);
 		} else {
