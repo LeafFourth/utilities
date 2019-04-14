@@ -15,27 +15,11 @@ func WriteFile(reader io.Reader, path string) error {
 	}
 
 	var result error = nil;
-	for {
-		var tmp = [1024]byte{}
-		var bytes []byte = tmp[0:];
-		n, err2 := reader.Read(bytes);
-		if err2 != nil && err2 != io.EOF {
-			result = errors.New("read error:" + path);
-			break;
-		}
-		_, err3 := dst.Write(bytes);
-		if (err3 != nil) {
-			result = errors.New("read error:" + path);
-			break;
-		}
-		if n == 0 {
-			break;
-		}
-	}
+	_, result = io.Copy(dst, reader);
 
 	dst.Close();
 
-	if result != nil {
+	if result != nil &&  result != io.EOF {
 		os.Remove(path);
 	}
 	
@@ -73,11 +57,11 @@ func UnzipFile(zipFile string, dst string) error {
 	defer zipReader.Close();
 
 	for _, f := range zipReader.File {
-		subPath := filepath.Join(dst, f.Name);		
-		if subPath[len(subPath) - 1] == '/' {
+		subPath := filepath.Join(dst, f.Name);	
+		if f.Name[len(f.Name) - 1] == '/' {
 			err4 :=  os.MkdirAll(subPath, 0644);
 			if err4 != nil {
-				return errors.New("unzip create dir error:" + subPath);
+				return errors.New("unzip " + subPath + " create dir error:" + subPath);
 			}
 			continue;
 		}
